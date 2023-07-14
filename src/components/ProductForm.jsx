@@ -9,9 +9,12 @@ export default async function ProductForm() {
     return (
         <>
             <form
-                className="max-w-2xl mx-auto border border-gray-200 rounded-lg px-5"
+                className="max-w-2xl mx-auto border border-gray-200 rounded-lg px-5 py-7 bg-white"
                 onSubmit={(e) => e.preventDefault()}
             >
+                <h1 className="text-3xl font-semibold text-center mb-4 text-gray-600">
+                    Add new product
+                </h1>
                 <div className="form__grp">
                     <label htmlFor="name">Name:</label>
                     <input type="text" name="name" />
@@ -53,13 +56,13 @@ export default async function ProductForm() {
                     <div className="flex justify-center gap-2">
                         <button
                             type="reset"
-                            className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-500 font-semibold"
+                            className="bg-red-600 text-white px-5 py-2 rounded-md hover:bg-red-500 font-semibold"
                         >
                             Reset Form
                         </button>
                         <button
                             type="submit"
-                            className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-500 font-semibold"
+                            className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-500 font-semibold"
                         >
                             Add Product
                         </button>
@@ -70,7 +73,7 @@ export default async function ProductForm() {
     );
 }
 
-const PropertyInput = ({ name, label }) => {
+const PropertyInput = () => {
     const [propertyCnt, setPropertyCnt] = useState(1);
 
     return (

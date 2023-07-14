@@ -1,11 +1,11 @@
 import Layout from "@/components/Layout";
-import ProductForm from "@/components/ProductForm";
+import CategoryForm from "@/components/CategoryForm";
 import React from "react";
 
 async function Products() {
     return (
         <>
-            <ProductForm />
+            <CategoryForm />
         </>
     );
 }
