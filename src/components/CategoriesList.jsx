@@ -9,20 +9,29 @@ export default function CategoriesList() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        try {
-            setLoading(true);
+    function wait(seconds) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, seconds * 1000);
+        });
+    }
 
-            (async () => {
-                const respCat = await getAllCategories();
-                console.log(respCat);
-                setCategories(respCat);
-            })();
+    async function fetchCategories() {
+        setLoading((prev) => true);
+        try {
+            console.log("waiting 2 seconds");
+            console.log(loading);
+            const respCat = await getAllCategories();
+            console.log(respCat);
+            setCategories(respCat);
         } catch (error) {
             console.log(error);
         } finally {
             setLoading(false);
         }
+    }
+
+    useEffect(() => {
+        fetchCategories();
     }, []);
 
     return (
