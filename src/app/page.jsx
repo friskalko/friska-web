@@ -16,9 +16,7 @@ export default function Home() {
     };
     return (
         <>
-            <CategoryFrom />
-
-            <ProductForm />
+            <h1>DASHBOARD</h1>
         </>
     );
 }
