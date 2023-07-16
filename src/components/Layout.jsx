@@ -10,8 +10,11 @@ import {
 import LinkItem from "./LinkItem";
 export default function Layout({ children }) {
     return (
-        <div className="grid grid-cols-[250px,1fr] grid-rows-[50px,1fr] w-full h-full">
-            <div id="sidebar" className="h-full row-span-full border-r">
+        <div className="grid grid-cols-[250px,1fr] grid-rows-[50px,1fr] w-full h-full bg-zinc-50">
+            <div
+                id="sidebar"
+                className="h-full row-span-full border-r bg-white"
+            >
                 <h1 className="text-5xl font-semibold text-center my-10 text-blue-600">
                     Friska
                 </h1>
@@ -41,10 +44,10 @@ export default function Layout({ children }) {
 
             <div
                 id="header"
-                className="col-start-2 col-end-[-1] border-b"
+                className="col-start-2 col-end-[-1] border-b bg-white"
             ></div>
 
-            <div id="content" className="overflow-scroll bg-zinc-50 p-4">
+            <div id="content" className="overflow-scroll py-4 px-10 mb-4">
                 {children}
             </div>
         </div>
