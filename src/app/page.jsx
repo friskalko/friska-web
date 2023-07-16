@@ -20,7 +20,3 @@ export default function Home() {
         </>
     );
 }
-
-export async function GET() {
-    console.log("GET");
-}
