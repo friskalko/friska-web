@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { getAllCategories } from "@/firebase/helpers";
 import CategoriesListItem from "@/components/CategoriesListItem";
@@ -15,22 +15,21 @@ export default function CategoriesList() {
         });
     }
 
-    async function fetchCategories() {
-        setLoading((prev) => true);
-        try {
-            console.log("waiting 2 seconds");
-            console.log(loading);
-            const respCat = await getAllCategories();
-            console.log(respCat);
-            setCategories(respCat);
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    }
-
     useEffect(() => {
+        async function fetchCategories() {
+            setLoading((prev) => true);
+            try {
+                console.log("waiting 2 seconds");
+                console.log(loading);
+                const respCat = await getAllCategories();
+                console.log(respCat);
+                setCategories(respCat);
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setLoading(false);
+            }
+        }
         fetchCategories();
     }, []);
 
