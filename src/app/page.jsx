@@ -16,7 +16,9 @@ export default function Home() {
     };
     return (
         <>
-            <h1>DASHBOARD</h1>
+            <h1 className="text-3xl bg-blue-600 text-center">
+                G1 Aqua DASHBOARD
+            </h1>
         </>
     );
 }
