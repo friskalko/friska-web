@@ -7,7 +7,7 @@ import Spinner from "@/components/Spinner";
 
 export default function CategoriesList() {
     const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     function wait(seconds) {
         return new Promise((resolve) => {
@@ -19,10 +19,7 @@ export default function CategoriesList() {
         async function fetchCategories() {
             setLoading((prev) => true);
             try {
-                console.log("waiting 2 seconds");
-                console.log(loading);
                 const respCat = await getAllCategories();
-                console.log(respCat);
                 setCategories(respCat);
             } catch (error) {
                 console.log(error);
@@ -41,6 +38,17 @@ export default function CategoriesList() {
                 categories.map((category) => (
                     <CategoriesListItem key={category.id} category={category} />
                 ))
+            )}
+
+            {!loading && categories.length === 0 && (
+                <div className="flex flex-col items-center justify-center gap-5 my-5">
+                    <p className="text-2xl font-semibold text-gray-800">
+                        No Categories found
+                    </p>
+                    <p className="text-gray-500">
+                        Add a new category to get started
+                    </p>
+                </div>
             )}
         </div>
     );
