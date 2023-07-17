@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { createCategory } from "@/firebase/helpers";
+import { createCategory, updateCategory } from "@/firebase/helpers";
 import Spinner from "./Spinner";
-export default function CategoryForm() {
+export default function CategoryForm({ edit, category }) {
     const [submitting, setSubmitting] = useState(false);
     async function submitFormHandler(e) {
         e.preventDefault();
         try {
             setSubmitting(true);
-            const respCat = await createCategory(e.target.name.value);
+            const respCat = await (edit
+                ? updateCategory(category.id, e.target.name.value)
+                : createCategory(e.target.name.value));
             console.log(respCat);
             window.location.reload();
         } catch (error) {
@@ -22,14 +24,16 @@ export default function CategoryForm() {
     return (
         <>
             <form
-                className="max-w-2xl mx-auto border border-gray-200 rounded-lg px-5 py-7 bg-white"
+                className="max-w-3xl min-w-[38rem] mx-auto border border-gray-200 rounded-lg px-5 py-7 bg-white"
                 onSubmit={submitFormHandler}
             >
                 <h1 className="text-3xl font-semibold text-center mb-4 text-gray-600">
-                    Add new category
+                    {edit ? "Update category" : "Add new category"}
                 </h1>
                 <div className="flex items-center gap-2">
+                    <label htmlFor="name">Name</label>
                     <input
+                        defaultValue={edit ? category.name : ""}
                         type="text"
                         name="name"
                         className="flex-1"
@@ -40,7 +44,13 @@ export default function CategoryForm() {
                         type="submit"
                         className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-500 font-semibold flex gap-2 items-stretch disabled:bg-gray-500 disabled:cursor-not-allowed"
                     >
-                        {submitting ? "Adding" : "Add"}
+                        {edit
+                            ? submitting
+                                ? "Updating"
+                                : "Update"
+                            : submitting
+                            ? "Adding"
+                            : "Add"}
                     </button>
                 </div>
             </form>
