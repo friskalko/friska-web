@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { createCategory, updateCategory } from "@/firebase/helpers";
-import Spinner from "./Spinner";
 export default function CategoryForm({ edit, category }) {
     const [submitting, setSubmitting] = useState(false);
     async function submitFormHandler(e) {
