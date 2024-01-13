@@ -1,53 +1,30 @@
 "use client";
+import { ref, push, update, remove, get, child, set } from "firebase/database";
 import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    getDoc,
-    setDoc,
-    doc,
-    serverTimestamp,
-    orderBy,
-} from "firebase/firestore";
-import { categoriesCollection, productsCollection } from "./collections";
+    getDownloadURL,
+    ref as storageRef,
+    uploadBytes,
+    deleteObject,
+} from "firebase/storage";
+import { serverTimestamp } from "firebase/firestore";
 import { convertToCapitalWordsString } from "@/utils";
-import { firebaseStorage } from "./config";
+import {
+    productsRef,
+    categoriesRef,
+    dbRef,
+    CATEGORIES,
+    PRODUCTS,
+} from "./collections";
 
 import { v4 as uuidv4 } from "uuid";
-import {
-    deleteObject,
-    getDownloadURL,
-    ref,
-    uploadBytes,
-} from "firebase/storage";
-
-export async function getAllProducts() {
-    const querySnapshot = await getDocs(
-        query(productsCollection, orderBy("updatedAt", "desc"))
-    );
-
-    const products = [];
-    querySnapshot.forEach((doc) => {
-        const productData = doc.data();
-        const productId = doc.id;
-        const product = {
-            id: productId,
-            ...productData,
-        };
-        products.push(product);
-    });
-
-    return products;
-}
+import { firebaseStorage } from "./config";
 
 async function uploadImageFile(file) {
     if (!file) return null;
 
     const uniqueFileName = uuidv4();
 
-    const fileRef = ref(firebaseStorage, `products/${uniqueFileName}`);
+    const fileRef = storageRef(firebaseStorage, `products/${uniqueFileName}`);
     await uploadBytes(fileRef, file);
     const fileDownloadUrl = await getDownloadURL(fileRef);
     return fileDownloadUrl;
@@ -56,23 +33,39 @@ async function uploadImageFile(file) {
 async function deleteImageFile(fileUrl) {
     if (!fileUrl) return null;
 
-    const fileRef = ref(firebaseStorage, fileUrl);
+    const fileRef = storageRef(firebaseStorage, fileUrl);
     await deleteObject(fileRef);
 }
 
-export async function getProduct(productId) {
-    const docRef = doc(productsCollection, productId);
-    const docSnap = await getDoc(docRef);
+export async function getAllProducts() {
+    const snapshot = await get(child(...productsRef));
 
-    if (docSnap.exists()) {
-        return docSnap.data();
+    const products = [];
+    if (snapshot.exists()) {
+        Object.entries(snapshot.val()).forEach(([productId, productData]) => {
+            const product = {
+                id: productId,
+                ...productData,
+            };
+            products.push(product);
+        });
+    }
+
+    return products;
+}
+
+export async function getProduct(productId) {
+    const productSnapshot = await get(child(...productsRef, productId));
+
+    if (productSnapshot.exists()) {
+        return productSnapshot.val();
     } else {
         throw new Error("Product not found.");
     }
 }
+
 export async function createProduct(product) {
     const fileDownloadUrl = await uploadImageFile(product.image);
-    console.log(fileDownloadUrl);
     const productData = {
         ...product,
         image: fileDownloadUrl,
@@ -80,40 +73,47 @@ export async function createProduct(product) {
         updatedAt: serverTimestamp(),
     };
 
-    console.log(productData);
+    const newProductRef = push(child(dbRef, PRODUCTS));
+    await set(child(dbRef, `${PRODUCTS}/${newProductRef.key}`), productData);
 
-    return await addDoc(productsCollection, productData);
+    return newProductRef.key;
 }
 
 export async function updateProduct(productId, product, oldProduct) {
     if (product.image instanceof File) {
-        // delete old product.image
-        //old product image is a string url
         deleteImageFile(oldProduct.image);
-
-        // upload new product.image
 
         const fileDownloadUrl = await uploadImageFile(product.image);
         product.image = fileDownloadUrl;
     }
 
     product.updatedAt = serverTimestamp();
-    return await setDoc(doc(productsCollection, productId), product);
+    await update(child(dbRef, `${PRODUCTS}/${productId}`), product);
+}
+
+export async function deleteProduct(productId, product) {
+    if (product.image) {
+        deleteImageFile(product.image);
+    }
+
+    await remove(child(productsRef, productId));
 }
 
 export async function createCategory(categoryName) {
     const text = convertToCapitalWordsString(categoryName);
 
-    // Check if a document with the same name already exists
-    const querySnapshot = await getDocs(
-        query(categoriesCollection, where("name", "==", text))
+    const querySnapshot = await get(child(dbRef, `${CATEGORIES}`));
+
+    const categoryExist = Object.values(querySnapshot.val()).find(
+        (cat) => cat.name.toLowerCase() === text.toLowerCase()
     );
 
-    if (querySnapshot.size > 0) {
+    if (categoryExist) {
         throw new Error("Category already exists.");
     }
 
-    return await addDoc(categoriesCollection, {
+    const newCategoryRef = push(child(dbRef, CATEGORIES));
+    await set(child(dbRef, `${CATEGORIES}/${newCategoryRef.key}`), {
         name: text,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -122,39 +122,39 @@ export async function createCategory(categoryName) {
 
 export async function updateCategory(categoryId, categoryName) {
     const text = convertToCapitalWordsString(categoryName);
-
-    // Check if a document with the same name already exists
-    const querySnapshot = await getDocs(
-        query(categoriesCollection, where("name", "==", text))
+    console.log(categoryId);
+    const querySnapshot = await get(
+        child(dbRef, `${CATEGORIES}/${categoryId}`)
     );
 
-    if (querySnapshot.size > 0) {
+    console.log(querySnapshot.val());
+
+    if (
+        (querySnapshot.exists() && querySnapshot.key !== categoryId) ||
+        querySnapshot.val().name === text
+    ) {
         throw new Error("Category already exists.");
     }
 
-    return await setDoc(
-        doc(categoriesCollection, categoryId),
-        {
-            name: text,
-            updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-    );
+    await update(child(dbRef, `${CATEGORIES}/${categoryId}`), {
+        name: text,
+        updatedAt: serverTimestamp(),
+    });
 }
 
 export async function getAllCategories() {
-    const querySnapshot = await getDocs(
-        query(categoriesCollection, orderBy("updatedAt", "desc"))
-    );
+    const snapshot = await get(child(...categoriesRef));
 
     const categories = [];
-
-    querySnapshot.forEach((doc) => {
-        const category = doc.data();
-        category.id = doc.id;
-        categories.push(category);
-    });
+    if (snapshot.exists()) {
+        Object.entries(snapshot.val()).forEach(([categoryId, categoryData]) => {
+            const category = {
+                id: categoryId,
+                ...categoryData,
+            };
+            categories.push(category);
+        });
+    }
 
     return categories;
-    // return categories;
 }
